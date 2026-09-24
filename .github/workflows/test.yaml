@@ -1,45 +1,177 @@
-name: CI Test Matrix & Security Audit
+name: Test and Build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
+
+permissions:
+  contents: read
 
 jobs:
-  test-and-audit:
-    name: Validate Python SDK & Audit Dependencies
+  test-rt:
+    name: Test RT SDK
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12']
-
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Verify Lockfile Parity
+        run: pip install poetry && poetry check --lock
+      - name: Install dependencies
+        run: make install-dev-rt
+      - name: Dependency Security Audit
+        run: pip install pip-audit && pip-audit
+      - name: Lint RT SDK
+        run: make lint-rt
+      - name: Test RT SDK
+        run: make test-rt && pytest sdk/rt/tests/ --cov=sdk/rt --cov-fail-under=50
+      - name: Build RT SDK
+        run: make build-rt
 
-      - name: Set up Astral uv
-        uses: astral-sh/setup-uv@v5
+  test-batch:
+    name: Test Batch SDK
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+      - name: Verify Lockfile Parity
+        run: pip install poetry && poetry check --lock
+      - name: Install dependencies
+        run: make install-dev-batch
+      - name: Dependency Security Audit
+        run: pip install pip-audit && pip-audit
+      - name: Lint Batch SDK
+        run: make lint-batch
+      - name: Test Batch SDK
+        run: make test-batch && pytest sdk/batch/tests/ --cov=sdk/batch --cov-fail-under=50
+      - name: Build Batch SDK
+        run: make build-batch
 
-      - name: Validate Lockfile Parity
-        run: uv lock --check
+  test-agent-stt:
+    name: Test Agent STT SDK
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify Lockfile Parity
+        run: pip install poetry && poetry check --lock
+      - name: Install dependencies
+        run: make install-dev-agent-stt
+      - name: Dependency Security Audit
+        run: pip install pip-audit && pip-audit
+      - name: Lint Agent STT SDK
+        run: make lint-agent-stt
+      - name: Test Agent STT SDK
+        run: make test-agent-stt && pytest sdk/agent-stt/tests/ --cov=sdk/agent-stt --cov-fail-under=50
+      - name: Build Agent STT SDK
+        run: make build-agent-stt
 
-      - name: Install Monorepo SDK Development Dependencies
+  test-flow:
+    name: Test Flow SDK
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify Lockfile Parity
+        run: pip install poetry && poetry check --lock
+      - name: Install dependencies
+        run: make install-dev-flow
+      - name: Dependency Security Audit
+        run: pip install pip-audit && pip-audit
+      - name: Lint Flow SDK
+        run: make lint-flow
+      - name: Test Flow SDK
+        run: make test-flow && pytest sdk/flow/tests/ --cov=sdk/flow --cov-fail-under=50
+      - name: Build Flow SDK
+        run: make build-flow
+
+  test-voice:
+    name: Test Voice Agent SDK
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify Lockfile Parity
+        run: pip install poetry && poetry check --lock
+      - name: Install dependencies
+        run: make install-dev-voice
+      - name: Dependency Security Audit
+        run: pip install pip-audit && pip-audit
+      - name: Lint Voice Agent SDK
+        run: make lint-voice
+      - name: Test Voice Agent SDK
+        run: make test-voice && pytest sdk/voice/tests/ --cov=sdk/voice --cov-fail-under=50
+      - name: Build Voice Agent SDK
+        run: make build-voice
+
+  test-tts:
+    name: Test TTS SDK
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify Lockfile Parity
+        run: pip install poetry && poetry check --lock
+      - name: Install dependencies
+        run: make install-dev-tts
+      - name: Dependency Security Audit
+        run: pip install pip-audit && pip-audit
+      - name: Lint TTS SDK
+        run: make lint-tts
+      - name: Test TTS SDK
+        run: make test-tts && pytest sdk/tts/tests/ --cov=sdk/tts --cov-fail-under=50
+      - name: Build TTS SDK
+        run: make build-tts
+
+  test-sovereign-agent:
+    name: Test MySovereignVOIP_Agent App
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Verify Lockfile Parity
+        run: pip install poetry && poetry check --lock
+      - name: Install project and dev dependencies
         run: |
-          uv sync --all-extras --dev
-
-      - name: Run Dependency Security Audit
-        run: |
-          uv pip install pip-audit
-          uv run pip-audit
-
-      - name: Execute Sub-Package Test Suite
-        run: |
-          uv run pytest
+          python -m pip install --upgrade pip
+          pip install .[dev]
+      - name: Dependency Security Audit
+        run: pip install pip-audit && pip-audit
+      - name: Run Pytest Coverage & Suite
+        run: pytest --cov=src/sovereign_agent tests/ --cov-fail-under=50

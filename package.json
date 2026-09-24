@@ -1,0 +1,15 @@
+{
+  "name": "speechmatics-agent-dashboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web UI dashboard stub for monitoring sovereign voice agent metrics",
+  "scripts": {
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "test": "echo \"Error: no web tests configured\" && exit 0"
+  },
+  "devDependencies": {
+    "eslint": "^9.11.0",
+    "prettier": "^3.3.3"
+  }
+}
